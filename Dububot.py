@@ -22,11 +22,6 @@ if os.name == 'nt':
 dubucore.configureLogging()
 discord_log = logging.getLogger('discord')
 
-auth = ConfigParser()
-auth.read('../dububot_secret.ini')
-discord_token = auth.get('auth', 'discord_token')
-twitch_token = auth.get('twitch','client_id')
-
 custom_commands = ConfigParser()
 custom_commands.read('custom_commands.ini')
 
@@ -36,18 +31,19 @@ try:
 except FileNotFoundError:
     discord_log.error("'config.ini' not found! Some functions will be disabled.")
 
-comm_pre = config.get('chat', 'command_prefix')
 owner = config.get('owner', 'owner_id')
+comm_pre = config.get('chat', 'command_prefix')
+discord_token = config.get('discord', 'token')
+twitch_token = config.get('twitch','client_id')
+
 
 # TODO: need a more modular setup that can be reloaded while running
 #dubuModules = modules.Modules(auth, config)
 #dubuModules.load()
 
 Client = discord.Client()
-client = commands.Bot(command_prefix = "!")
+client = commands.Bot(command_prefix = comm_pre)
 
-chat_filter = ["PINEAPPLE", "APPLE", "CHROME"]
-bypass_list = []
 
 @client.event
 async def on_ready():
