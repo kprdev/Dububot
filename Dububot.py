@@ -7,11 +7,17 @@ import importlib.util
 from configparser import ConfigParser
 import logging
 from pprint import pprint
+import os
+import ctypes
 
 # local files
 import dubucore
 import modules
 from lib import TwitchClient
+
+# Sets window name of running application if on Windows
+if os.name == 'nt':
+    ctypes.windll.kernel32.SetCconsoleTitleW("Dububot")
 
 dubucore.configureLogging()
 discord_log = logging.getLogger('discord')
@@ -27,6 +33,8 @@ custom_commands.read('custom_commands.ini')
 config = ConfigParser()
 try:
     config.read('config.ini')
+    comm_pre = config.get('chat', 'command_prefix')
+    owner = config.get('owner', 'owner_id')
 except FileNotFoundError:
     discord_log.error("'config.ini' not found! Some functions will be disabled.")
 
@@ -43,6 +51,7 @@ bypass_list = []
 @client.event
 async def on_ready():
     discord_log.info("Bot is online and connected to Discord!")
+    await client.change_presence(game=discord.Game(name="Dubu Dubu Dubu"))
 
 @client.event
 async def on_message(message):
@@ -54,29 +63,13 @@ async def on_message(message):
         if word.upper() in greeting_list:
             await client.send_message(message.channel, "<@%s> 안녕 :heartbeat:" % (userID))
 
-    if message.content.upper().startswith('!PING'):
+    if message.content.upper().startswith(comm_pre + 'PING'):
         await client.send_message(message.channel, "<@%s> pong!" % (userID))
 
-    if message.content.upper().startswith('!SAY'):
-        args = message.content.split(" ")
-        await client.send_message(message.channel, "%s" % (" ".join(args[1:])))
-
-    if message.content.upper().startswith('!AMIADMIN'):
-        userID = message.author.id
-        if "436296739104751618" in [role.id for role in message.author.roles]:
-            await client.send_message(message.channel, "<@%s> You are in the Administrators group" % (userID))
-        else:
-            await client.send_message(message.channel, "<@%s> You are not in the Administrators group" % (userID))
-
-    contents = message.content.split(" ")
-    for word in contents:
-        if word.upper() in chat_filter:
-            if not message.author.id in bypass_list:
-                try:
-                    await client.delete_message(message)
-                    await client.send_message(message.channel, "**Hey!** You're not allowed to use that word here!")
-                except discord.errors.NotFound:
-                    return                
+    if message.content.upper().startswith(comm_pre + 'STATUS') and message.author.id == owner:
+        game = message.content[8:]
+        await client.change_presence(game=discord.Game(name=game))
+        await client.send_message(message.channel, "Status has been updated to " + game)
 
 async def twitch_loop():
     await client.wait_until_ready()
