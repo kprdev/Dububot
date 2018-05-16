@@ -33,10 +33,11 @@ custom_commands.read('custom_commands.ini')
 config = ConfigParser()
 try:
     config.read('config.ini')
-    comm_pre = config.get('chat', 'command_prefix')
-    owner = config.get('owner', 'owner_id')
 except FileNotFoundError:
     discord_log.error("'config.ini' not found! Some functions will be disabled.")
+
+comm_pre = config.get('chat', 'command_prefix')
+owner = config.get('owner', 'owner_id')
 
 # TODO: need a more modular setup that can be reloaded while running
 #dubuModules = modules.Modules(auth, config)
