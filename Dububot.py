@@ -21,7 +21,7 @@ if os.name == 'nt':
     ctypes.windll.kernel32.SetCconsoleTitleW("Dububot")
 
 dubucore.configureLogging()
-discord_log = logging.getLogger('discord')
+discord_log = logging.getLogger(__name__)
 
 custom_commands = ConfigParser()
 custom_commands.read('custom_commands.ini')
