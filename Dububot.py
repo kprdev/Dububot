@@ -95,34 +95,35 @@ async def twitch_loop():
             embed = twitch_start_embed(s)
             message = twitch_start_message(s)
             discord_log.info("Twitch stream started: {}({})"\
-                .format(s['user']['display_name'], s['id']))
+                .format(s['user']['login'], s['id']))
             await client.send_message(channel, content=message, embed=embed)
 
         for s in live['stopped'].values():
             message = "{} has ended their stream ({})."\
                 .format(s['user']['display_name'], s['id'])
             discord_log.info("Twitch stream stopped: {}({})"\
-                .format(s['user']['display_name'], s['id']))
+                .format(s['user']['login'], s['id']))
             await client.send_message(channel, content=message)
 
         await asyncio.sleep(45)
 
 def twitch_start_message(stream):
-    return "{0} is live playing {1}! https://www.twitch.tv/{0}".format(
+    return "{0} is live playing {1}! https://www.twitch.tv/{2}".format(
         stream['user']['display_name'], 
-        stream['game']['name'])
+        stream['game']['name'],
+        stream['user']['login'])
 
 def twitch_start_embed(stream):
     user = stream['user']
     game = stream['game']
 
     embed = discord.Embed(
-        description = "https://www.twitch.tv/{}".format(user['display_name']),
+        description = "https://www.twitch.tv/{}".format(user['login']),
         timestamp = datetime.datetime.strptime(stream['started_at'],"%Y-%m-%dT%H:%M:%SZ")
     )
     embed.set_author(
             name = "{} is now live!".format(user['display_name']),
-            url = "https://www.twitch.tv/{}".format(user['display_name']),
+            url = "https://www.twitch.tv/{}".format(user['login']),
             icon_url = "https://cdn.discordapp.com/emojis/287637883022737418.png") \
          .set_thumbnail(url=user['profile_image_url'])                             \
          .set_footer(
