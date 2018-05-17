@@ -88,14 +88,14 @@ async def twitch_loop():
         for s in live['started'].values():
             embed = twitch_start_embed(s)
             message = twitch_start_message(s)
-            discord_log.info("Twitch stream started: {}({})"\
+            discord_log.info("Twitch stream started: {} ({})"\
                 .format(s['user']['login'], s['id']))
             await client.send_message(channel, content=message, embed=embed)
 
         for s in live['stopped'].values():
             message = "{} has ended their stream ({})."\
                 .format(s['user']['display_name'], s['id'])
-            discord_log.info("Twitch stream stopped: {}({})"\
+            discord_log.info("Twitch stream stopped: {} ({})"\
                 .format(s['user']['login'], s['id']))
             await client.send_message(channel, content=message)
 
