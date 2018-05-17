@@ -34,7 +34,7 @@ except FileNotFoundError:
 owner = config.get('owner', 'owner_id', fallback='0')
 comm_pre = config.get('chat', 'command_prefix', fallback='!')
 discord_token = config.get('discord', 'token')
-twitch_token = config.get('twitch','client_id')
+twitch_token = config.get('twitch','client_id', fallback=None)
 
 
 # TODO: need a more modular setup that can be reloaded while running
@@ -69,6 +69,10 @@ async def on_message(message):
         await client.send_message(message.channel, "Status has been updated to " + game)
 
 async def twitch_loop():
+    if twitch_token is None or twitch_token == '':
+        discord_log.warning('Twitch token missing. No monitoring will take place.')
+        return
+    
     await client.wait_until_ready()
     await asyncio.sleep(2)
 
