@@ -49,7 +49,7 @@ class DubuCache:
         for (k, v) in c.items():
             if (time.time() - v["stamp"] > limitSeconds):
                 del self.cache[k]
-                cachelog.info("{} - cleaned up {}".format(self.name, k))
+                cachelog.debug("{} - cleaned up {}".format(self.name, k))
 
     @property
     def size(self):
