@@ -78,7 +78,7 @@ async def twitch_loop():
     await asyncio.sleep(2)
 
     twClient = TwitchClient.TwitchClient(twitch_token)
-    channel = client.get_channel(config.get('twitch','AnnounceChannelId'))
+    announceChannel = client.get_channel(config.get('twitch','AnnounceChannelId'))
     usernames = config.get('twitch','MonitorChannels').split(',')
     dubulog.info('Monitoring twitch channels: {}'.format(str(usernames)))
 
@@ -91,14 +91,14 @@ async def twitch_loop():
             message = twitch_start_message(s)
             dubulog.info("Twitch stream started: {} ({})"\
                 .format(s['user']['login'], s['id']))
-            await client.send_message(channel, content=message, embed=embed)
+            await client.send_message(announceChannel, content=message, embed=embed)
 
         for s in live['stopped'].values():
             message = "{} has ended their stream ({})."\
                 .format(s['user']['display_name'], s['id'])
             dubulog.info("Twitch stream stopped: {} ({})"\
                 .format(s['user']['login'], s['id']))
-            await client.send_message(channel, content=message)
+            await client.send_message(announceChannel, content=message)
 
         await asyncio.sleep(45)
 
