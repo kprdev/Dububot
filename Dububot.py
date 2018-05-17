@@ -3,6 +3,7 @@ from discord.ext.commands import Bot
 from discord.ext import commands
 import asyncio
 import datetime
+import time
 import importlib.util
 from configparser import ConfigParser
 import logging
@@ -126,7 +127,7 @@ def twitch_start_embed(stream):
          .add_field(name="Now Playing", value=game['name'])                        \
          .add_field(name="Total Views", value=user['view_count'])                  \
          .add_field(name="Stream Title", value=stream['title'])                    \
-         .set_image(url=stream['thumbnail_url'].format(width=1024, height=576))
+         .set_image(url=stream['thumbnail_url'].format(width=1024, height=576) + '?t={}'.format(time.time()))
     return embed
 
 client.loop.create_task(twitch_loop())
