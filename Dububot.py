@@ -31,8 +31,8 @@ try:
 except FileNotFoundError:
     discord_log.error("'config.ini' not found! Some functions will be disabled.")
 
-owner = config.get('owner', 'owner_id')
-comm_pre = config.get('chat', 'command_prefix')
+owner = config.get('owner', 'owner_id', fallback='0')
+comm_pre = config.get('chat', 'command_prefix', fallback='!')
 discord_token = config.get('discord', 'token')
 twitch_token = config.get('twitch','client_id')
 
