@@ -21,7 +21,7 @@ if os.name == 'nt':
     ctypes.windll.kernel32.SetCconsoleTitleW("Dububot")
 
 dubucore.configureLogging()
-discord_log = logging.getLogger(__name__)
+dubulog = logging.getLogger(__name__)
 
 custom_commands = ConfigParser()
 custom_commands.read('custom_commands.ini')
@@ -30,7 +30,7 @@ config = ConfigParser()
 try:
     config.read('config.ini')
 except FileNotFoundError:
-    discord_log.error("'config.ini' not found! Some functions will be disabled.")
+    dubulog.error("'config.ini' not found! Some functions will be disabled.")
 
 owner = config.get('owner', 'owner_id', fallback='0')
 comm_pre = config.get('chat', 'command_prefix', fallback='!')
@@ -48,7 +48,7 @@ client = commands.Bot(command_prefix = comm_pre)
 
 @client.event
 async def on_ready():
-    discord_log.info("Bot is online and connected to Discord!")
+    dubulog.info("Bot is online and connected to Discord!")
     await client.change_presence(game=discord.Game(name="Dubu Dubu Dubu"))
 
 @client.event
@@ -71,7 +71,7 @@ async def on_message(message):
 
 async def twitch_loop():
     if twitch_token is None or twitch_token == '':
-        discord_log.warning('Twitch token missing. No monitoring will take place.')
+        dubulog.warning('Twitch token missing. No monitoring will take place.')
         return
     
     await client.wait_until_ready()
@@ -80,7 +80,7 @@ async def twitch_loop():
     twClient = TwitchClient.TwitchClient(twitch_token)
     channel = client.get_channel(config.get('twitch','AnnounceChannelId'))
     usernames = config.get('twitch','MonitorChannels').split(',')
-    discord_log.info('Monitoring twitch channels: {}'.format(str(usernames)))
+    dubulog.info('Monitoring twitch channels: {}'.format(str(usernames)))
 
     while not client.is_closed:
         live = twClient.update_live_list(usernames)
@@ -89,14 +89,14 @@ async def twitch_loop():
         for s in live['started'].values():
             embed = twitch_start_embed(s)
             message = twitch_start_message(s)
-            discord_log.info("Twitch stream started: {} ({})"\
+            dubulog.info("Twitch stream started: {} ({})"\
                 .format(s['user']['login'], s['id']))
             await client.send_message(channel, content=message, embed=embed)
 
         for s in live['stopped'].values():
             message = "{} has ended their stream ({})."\
                 .format(s['user']['display_name'], s['id'])
-            discord_log.info("Twitch stream stopped: {} ({})"\
+            dubulog.info("Twitch stream stopped: {} ({})"\
                 .format(s['user']['login'], s['id']))
             await client.send_message(channel, content=message)
 
