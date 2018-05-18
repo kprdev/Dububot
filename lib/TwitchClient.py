@@ -45,19 +45,23 @@ class TwitchClient:
                         gameids.append(v['game_id'])
 
                 # make data requests only if necessary
-                if len(userids) > 0:
-                    users = self.get_users(userids)
-                    users = self._rekey_list(users,'id')
-                    self.userCache.addDict(users)
-                if len(gameids) > 0:
-                    games = self.get_games(gameids)
-                    games = self._rekey_list(games,'id')
-                    self.gameCache.addDict(games)
-
-                # add the game/user data to the return
-                for k,v in streams.items():
-                    streams[k]['user'] = self.userCache.value(v['user_id'])
-                    streams[k]['game'] = self.gameCache.value(v['game_id'])
+                try:
+                    if len(userids) > 0:
+                        users = self.get_users(userids)
+                        users = self._rekey_list(users,'id')
+                        self.userCache.addDict(users)
+                    if len(gameids) > 0:
+                        games = self.get_games(gameids)
+                        games = self._rekey_list(games,'id')
+                        self.gameCache.addDict(games)
+                except TypeError as e:
+                    log.warning(e)
+                    streams = {}
+                else:
+                    # add the game/user data to the return
+                    for k,v in streams.items():
+                        streams[k]['user'] = self.userCache.value(v['user_id'])
+                        streams[k]['game'] = self.gameCache.value(v['game_id'])
             else:
                 # streams is a list by default, make sure it's a dict
                 streams = {}
