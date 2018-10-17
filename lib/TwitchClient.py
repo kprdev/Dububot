@@ -156,6 +156,7 @@ class TwitchClient:
     def _rekey_list(self, alist, key):
         """Rekey a list into a dict indexed by given key."""
         newdict = {}
-        for d in alist:
-            newdict[d[key]] = d
+        if alist is not None:
+            for d in alist:
+                newdict[d[key]] = d
         return newdict
