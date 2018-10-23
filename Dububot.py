@@ -89,8 +89,8 @@ async def twitch_loop():
         for s in live['started'].values():
             embed = twitch_start_embed(s)
             message = twitch_start_message(s)
-            dubulog.info("Twitch stream started: {} ({})"\
-                .format(s['user']['login'], s['id']))
+            dubulog.info("Twitch stream started: {} ({}), {}, {}"\
+                .format(s['user']['login'], s['id'], s['game']['name'], s['title']))
             await client.send_message(announceChannel, content=message, embed=embed)
 
         for s in live['stopped'].values():
@@ -99,6 +99,13 @@ async def twitch_loop():
             dubulog.info("Twitch stream stopped: {} ({})"\
                 .format(s['user']['login'], s['id']))
             await client.send_message(announceChannel, content=message)
+
+        for s in live['updated'].values():
+            embed = twitch_start_embed(s)
+            message = twitch_start_message(s)
+            dubulog.info("Twitch stream updated: {} ({}), {}, {}"\
+                .format(s['user']['login'], s['id'], s['game']['name'], s['title']))
+            await client.send_message(announceChannel, content=message, embed=embed)
 
         await asyncio.sleep(45)
 
@@ -117,7 +124,7 @@ def twitch_start_embed(stream):
         timestamp = datetime.datetime.strptime(stream['started_at'],"%Y-%m-%dT%H:%M:%SZ")
     )
     embed.set_author(
-            name = "{} is now live!".format(user['display_name']),
+            name = "{} is live!".format(user['display_name']),
             url = "https://www.twitch.tv/{}".format(user['login']),
             icon_url = "https://cdn.discordapp.com/emojis/287637883022737418.png") \
          .set_thumbnail(url=user['profile_image_url'])                             \
