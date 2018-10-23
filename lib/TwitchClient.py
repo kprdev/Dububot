@@ -72,16 +72,25 @@ class TwitchClient:
         streams = self.current_live_data(usernames)
         started = {}
         stopped = {}
+        updated = {}
 
         if streams is not None:
             if len(streams) > 0:
                 started = {k:v for (k,v) in streams.items() if k not in list(self.live.keys())}
                 stopped = {k:v for (k,v) in self.live.items() if k not in list(streams.keys())}
+
+            # Find streams with updated games/titles. The id doesn't change.
+            for k in set(streams.keys()).intersection(self.live.keys()):
+                if streams[k]['game_id'] != self.live[k]['game_id'] or \
+                   streams[k]['title'] != self.live[k]['title']:
+                    updated[k] = streams[k]
+
+            # Current live list is the new base.
             self.live = streams
         else:
             streams = {}
 
-        return { 'started': started, 'stopped': stopped, 'streams': streams }
+        return { 'started': started, 'stopped': stopped, 'updated': updated, 'streams': streams }
 
     def get_streams(self, usernames):
         """API request for stream information."""
