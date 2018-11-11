@@ -83,7 +83,7 @@ async def twitch_loop():
     dubulog.info('Monitoring twitch channels: {}'.format(str(usernames)))
 
     while not client.is_closed:
-        live = twClient.update_live_list(usernames)
+        live = await twClient.update_live_list(usernames)
         #pprint(live)
 
         for s in live['started'].values():
