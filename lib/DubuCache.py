@@ -13,12 +13,16 @@ class DubuCache:
         self.cache = {}
         self.name = name
         self.limitHours = limitHours
+        self.default_value = None
 
     def __contains__(self, key):
         return key in self.cache
 
     def add(self, key, value):
         self.cache[key] = {"stamp": time.time(), 'value': value}
+
+    def set_default(self, value):
+        self.default_value = value
 
     def addDict(self, adict):
         for k,v in adict.items():
@@ -28,7 +32,7 @@ class DubuCache:
         if key in self.cache:
             return self.cache[key]['value']
         else:
-            return None
+            return self.default_value
 
     def print(self):
         print(self.cache)
