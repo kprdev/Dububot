@@ -2,10 +2,10 @@
     Twitch client library
 """
 
-import requests
 import json
 import logging
 import time
+import aiohttp
 from lib import DubuCache
 
 log = logging.getLogger("twitch-client")
@@ -24,13 +24,13 @@ class TwitchClient:
         self.retry_max = 5
 
 
-    def current_live_data(self, usernames):
+    async def current_live_data(self, usernames):
         """Get dict of live streams + extra data."""
 
         self.userCache.cleanup()
         self.gameCache.cleanup()
 
-        streams = self.get_streams(usernames)
+        streams = await self.get_streams(usernames)
 
         if streams is not None:
             if len(streams) > 0:
@@ -48,11 +48,11 @@ class TwitchClient:
                 # make data requests only if necessary
                 try:
                     if len(userids) > 0:
-                        users = self.get_users(userids)
+                        users = await self.get_users(userids)
                         users = self._rekey_list(users,'id')
                         self.userCache.addDict(users)
                     if len(gameids) > 0:
-                        games = self.get_games(gameids)
+                        games = await self.get_games(gameids)
                         games = self._rekey_list(games,'id')
                         self.gameCache.addDict(games)
                 except TypeError as e:
@@ -69,8 +69,8 @@ class TwitchClient:
 
         return streams
 
-    def update_live_list(self, usernames):
-        streams = self.current_live_data(usernames)
+    async def update_live_list(self, usernames):
+        streams = await self.current_live_data(usernames)
         started = {}
         stopped = {}
         updated = {}
@@ -98,7 +98,7 @@ class TwitchClient:
 
         # https://api.twitch.tv/helix/streams?user_id=USER1&user_id=USER2
         api_url = '{}streams'.format(self.twitch_api_url_base)
-        params = {'user_login': usernames}
+        params = self._mdict('user_login', usernames)
         return self._make_request(api_url, params)
 
     def get_users(self, userids):
@@ -106,7 +106,7 @@ class TwitchClient:
 
         # https://api.twitch.tv/helix/users?id=USER1&id=USER2
         api_url = '{}users'.format(self.twitch_api_url_base)
-        params = {'id': userids}
+        params = self._mdict('id', userids)
         return self._make_request(api_url, params)
 
     def get_games(self, gameids):
@@ -114,7 +114,7 @@ class TwitchClient:
 
         # https://api.twitch.tv/helix/games?id=GAME1&id=GAME2
         api_url = '{}games'.format(self.twitch_api_url_base)
-        params = {'id': gameids}
+        params = self._mdict('id', gameids)
         return self._make_request(api_url, params)
 
     def get_followers(self, userid):
@@ -125,36 +125,40 @@ class TwitchClient:
         params = {'to_id': userid}
         return self._make_request(api_url,params)
 
-    def _make_request(self, url, params):
-        delay = self.retry_delay_init
-        response = None
-
-        for _ in range(self.retry_max):
+    async def _make_request(self, url, params):
+        async with aiohttp.request('GET', url, params=params, 
+                headers=self.twitch_request_headers) as r:
             try:
-                r = requests.get(url, params=params, headers=self.twitch_request_headers)
-            except requests.exceptions.RequestException as e:
+                json = await r.json()
+            except ConnectionResetError as e:
+                log.error(e)
+                response = None
+            except Exception as e:
                 log.error(e)
                 response = None
             else:
-                if r.status_code >= 500:
-                    log.warning('API status code {} returned!'.format(r.status_code))
-                    time.sleep(delay)
-                    delay = 2 * delay
-                    continue
-
-                if r.status_code != 200:
-                    log.warning('API status code {} returned!'.format(r.status_code))
+                if r.status >= 500:
+                    log.warning('API status code {} returned!'.format(r.status))
                     response = None
-                    break
-                
-                rr = int(r.headers['Ratelimit-Remaining'])
+                elif r.status != 200:
+                    log.warning('API status code {} returned!'.format(r.status))
+                    response = None
+                    print(r)
+                else:
+                    response = json['data']
+
+                rr = int(r.headers.get('Ratelimit-Remaining'))
                 if rr < 5:
                     log.warning('API rate limit remaining is {}!'.format(rr))
+            finally:
+                return response
 
-                response = r.json()['data']
-                break
-
-        return response
+    def _mdict(self, key, values):
+        """Return a MultiDict with the same 'key' for all 'values'."""
+        mdict = []
+        for v in values:
+            mdict.append((key, v))
+        return mdict
 
     def _get_slice(self, adict, key):
         """Return a slice of a dict indicated by key."""
