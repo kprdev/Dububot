@@ -19,6 +19,7 @@ class TwitchClient:
         self.live = {}
         self.userCache = DubuCache.DubuCache("user", 1)
         self.gameCache = DubuCache.DubuCache("game", 24)
+        self.gameCache.set_default({'name': 'Unlisted Game'})
         self.retry_delay_init = .5
         self.retry_max = 5
 
