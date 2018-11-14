@@ -126,17 +126,11 @@ class TwitchClient:
         return self._make_request(api_url,params)
 
     async def _make_request(self, url, params):
-        async with aiohttp.request('GET', url, params=params, 
-                headers=self.twitch_request_headers) as r:
-            try:
+        try:
+            async with aiohttp.request('GET', url, params=params, 
+                    headers=self.twitch_request_headers) as r:
                 json = await r.json()
-            except ConnectionResetError as e:
-                log.error(e)
-                response = None
-            except Exception as e:
-                log.error(e)
-                response = None
-            else:
+
                 if r.status >= 500:
                     log.warning('API status code {} returned!'.format(r.status))
                     response = None
@@ -150,8 +144,11 @@ class TwitchClient:
                 rr = int(r.headers.get('Ratelimit-Remaining'))
                 if rr < 5:
                     log.warning('API rate limit remaining is {}!'.format(rr))
-            finally:
-                return response
+        except Exception as e:
+            log.error(e)
+            response = None
+        finally:
+            return response
 
     def _mdict(self, key, values):
         """Return a MultiDict with the same 'key' for all 'values'."""
