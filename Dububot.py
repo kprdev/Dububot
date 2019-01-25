@@ -137,5 +137,9 @@ def twitch_start_embed(stream):
          .set_image(url=stream['thumbnail_url'].format(width=1024, height=576) + '?t={}'.format(time.time()))
     return embed
 
+def handle_async_exception(loop, context):
+    dubulog.warning("discord async exception: {}".format(context['message']))
+
+client.loop.set_exception_handler(handle_async_exception)
 client.loop.create_task(twitch_loop())
 client.run(discord_token)
